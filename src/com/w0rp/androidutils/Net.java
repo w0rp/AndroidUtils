@@ -2,27 +2,30 @@ package com.w0rp.androidutils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.*;
+import java.net.URI;
 
-import org.apache.http.*;
-import org.apache.http.client.methods.*;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 
 import android.util.Base64;
 
 public class Net {
-    public static class Request {
+    public static class Response {
         public static final int GENERIC_FAILURE = 600;
 
         private InputStream stream;
         private int responseCode = GENERIC_FAILURE;
 
-        public Request(InputStream stream) {
+        public Response(InputStream stream) {
             this(stream, GENERIC_FAILURE);
         }
 
-        public Request(InputStream stream, int responseCode) {
+        public Response(InputStream stream, int responseCode) {
             if (stream == null) {
                 this.stream = IO.emptyInputStream();
             } else {
@@ -65,9 +68,9 @@ public class Net {
         }
     }
 
-    public static Request openRequest(HttpUriRequest request) {
+    public static Response openRequest(HttpUriRequest request) {
         InputStream stream = null;
-        int responseCode = Request.GENERIC_FAILURE;
+        int responseCode = Response.GENERIC_FAILURE;
 
         try {
             HttpResponse response = new DefaultHttpClient().execute(request);
@@ -76,7 +79,7 @@ public class Net {
             responseCode = response.getStatusLine().getStatusCode();
         } catch (IOException e) { }
 
-        return new Request(stream, responseCode);
+        return new Response(stream, responseCode);
     }
 
     /*

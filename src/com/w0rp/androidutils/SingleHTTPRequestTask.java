@@ -4,25 +4,23 @@ import java.io.IOException;
 
 import org.apache.http.client.methods.HttpUriRequest;
 
-import android.os.AsyncTask;
-
 /**
- * This class provided a convenient way of dealing with a single HTTP request
+ * This class provides a convenient way of dealing with a single HTTP request
  * with an AsyncTask. The response value for this task will be a string
  * containing the request data. When a request fails, this string will be null.
  */
 public abstract class SingleHTTPRequestTask
-extends AsyncTask<HttpUriRequest, Void, String> {
+extends SingleAsyncTask<HttpUriRequest, Void, String> {
     @Override
-    protected String doInBackground(HttpUriRequest... requestList) {
-        assert(requestList.length == 1);
+    protected String doInBackground(HttpUriRequest request) {
+        Net.Response response = Net.openRequest(request);
 
-        Net.Request request = Net.openRequest(requestList[0]);
-
-        if (!request.failure()) {
+        if (!response.failure()) {
             try {
-                return request.download();
-            } catch (IOException e) { }
+                return response.download();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         return null;
