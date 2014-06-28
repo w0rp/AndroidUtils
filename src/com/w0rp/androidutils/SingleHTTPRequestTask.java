@@ -3,6 +3,7 @@ package com.w0rp.androidutils;
 import java.io.IOException;
 
 import org.apache.http.client.methods.HttpUriRequest;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * This class provides a convenient way of dealing with a single HTTP request
@@ -12,7 +13,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 public abstract class SingleHTTPRequestTask
 extends SingleAsyncTask<HttpUriRequest, Void, String> {
     @Override
-    protected String doInBackground(HttpUriRequest request) {
+    protected @Nullable String doInBackground(HttpUriRequest request) {
         Net.Response response = Net.openRequest(request);
 
         if (!response.failure()) {

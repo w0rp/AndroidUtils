@@ -11,6 +11,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
+import org.eclipse.jdt.annotation.Nullable;
 
 import android.util.Base64;
 
@@ -18,14 +19,14 @@ public class Net {
     public static class Response {
         public static final int GENERIC_FAILURE = 600;
 
-        private InputStream stream;
+        private final InputStream stream;
         private int responseCode = GENERIC_FAILURE;
 
-        public Response(InputStream stream) {
+        public Response(@Nullable InputStream stream) {
             this(stream, GENERIC_FAILURE);
         }
 
-        public Response(InputStream stream, int responseCode) {
+        public Response(@Nullable InputStream stream, int responseCode) {
             if (stream == null) {
                 this.stream = IO.emptyInputStream();
             } else {
@@ -68,8 +69,9 @@ public class Net {
         }
     }
 
-    public static Response openRequest(HttpUriRequest request) {
-        InputStream stream = null;
+    @SuppressWarnings("resource")
+	public static Response openRequest(HttpUriRequest request) {
+        @Nullable InputStream stream = null;
         int responseCode = Response.GENERIC_FAILURE;
 
         try {
@@ -106,9 +108,12 @@ public class Net {
             + base64Auth(username, password));
     }
 
-    public static String base64Auth(String username, String password) {
+    @SuppressWarnings("null")
+    public static String base64Auth(
+    @Nullable String username, @Nullable String password) {
         return Base64.encodeToString(
             (Coerce.def(username) + ":" + Coerce.def(password)).getBytes(),
-            Base64.NO_WRAP);
+            Base64.NO_WRAP
+        );
     }
 }

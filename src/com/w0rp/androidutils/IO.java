@@ -7,13 +7,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
+
 public abstract class IO {
     private static class NullInputStream extends InputStream {
         @Override public int read() { return -1; }
     }
 
     // A single instance can be reused, saving memory.
-    private static final InputStream nullInputStream = new NullInputStream();
+    private static final InputStream nullInputStream
+    	= new NullInputStream();
 
     /**
      * @return An InputStream with no data.
@@ -42,7 +46,13 @@ public abstract class IO {
      *
      * @return A string containing all of the data from an InputStream.
      */
-    public static String streamToString(InputStream is) throws IOException {
+    @SuppressWarnings("null")
+	public static @NonNull String
+    streamToString(@Nullable InputStream is) throws IOException {
+        if (is == null) {
+            return "";
+        }
+
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
 
@@ -64,14 +74,11 @@ public abstract class IO {
      *
      * This method will tolerate null references.
      */
-    public static void close(Closeable obj) {
-        if (obj == null) {
-            return;
-        }
-
-        try {
-            obj.close();
-        } catch (Exception e) {
+    public static void close(@Nullable Closeable obj) {
+        if (obj != null) {
+            try {
+                obj.close();
+            } catch (Exception e) { }
         }
     }
 }

@@ -14,7 +14,7 @@ import java.util.Map.Entry;
 public class FileRotator {
     private long currentSize = 0;
     private long weakMaxSize = 0;
-    private LinkedHashMap<String, Long> sizeMap;
+    private final LinkedHashMap<String, Long> sizeMap;
 
     public FileRotator(long weakMaxSize) {
         this.weakMaxSize = weakMaxSize;
@@ -50,10 +50,6 @@ public class FileRotator {
     }
 
     synchronized public void add(File file) {
-        if (file == null) {
-            return;
-        }
-
         String name = file.getAbsolutePath();
         long size = file.length();
 

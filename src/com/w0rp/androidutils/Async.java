@@ -11,7 +11,8 @@ public abstract class Async {
      * @param context
      * @param receiver
      */
-    public static void registerClass(Context context, BroadcastReceiver receiver) {
+    public static void registerClass(
+    Context context, BroadcastReceiver receiver) {
         context.registerReceiver(receiver,
             new IntentFilter(receiver.getClass().getName()));
     }

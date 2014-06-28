@@ -1,5 +1,7 @@
 package com.w0rp.androidutils;
 
+import org.eclipse.jdt.annotation.Nullable;
+
 import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.os.Bundle;
@@ -10,7 +12,7 @@ public abstract class SimplePreferenceActivity extends PreferenceActivity {
     @SuppressLint("ValidFragment")
     private class Frag extends PreferenceFragment {
         @Override
-        public void onCreate(Bundle savedInstanceState) {
+        public void onCreate(@Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
             // Load the preferences from an XML resource
@@ -19,7 +21,7 @@ public abstract class SimplePreferenceActivity extends PreferenceActivity {
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         Fragment frag = new Frag();

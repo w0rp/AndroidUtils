@@ -5,12 +5,14 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.jdt.annotation.Nullable;
+
 public final class RE {
     /**
      * A List wrapper for a MatchList.
      */
     public static class MatchList extends AbstractList<String> {
-        private final MatchResult matchResult;
+        private final @Nullable MatchResult matchResult;
 
         private MatchList() {
             this.matchResult = null;
@@ -23,14 +25,14 @@ public final class RE {
          *
          * @param matchResult The match result.
          */
-        public MatchList(MatchResult matchResult) {
+        public MatchList(@Nullable MatchResult matchResult) {
             this.matchResult = matchResult;
         }
 
         /**
          * @return The MatchResult object backing this List, which may be null.
          */
-        public MatchResult getMatchResult() {
+        public @Nullable MatchResult getMatchResult() {
             return matchResult;
         }
 
@@ -40,9 +42,14 @@ public final class RE {
          *
          * @return The group at the given location.
          */
+        @SuppressWarnings("null")
         @Override
         public String get(int location) {
-            return matchResult.group(location);
+            if (matchResult != null) {
+                return matchResult.group(location);
+            }
+
+            throw new IllegalStateException("The MatchList was empty!");
         }
 
         /**
@@ -50,11 +57,11 @@ public final class RE {
          */
         @Override
         public int size() {
-            if (matchResult == null) {
-                return 0;
+            if (matchResult != null) {
+                return matchResult.groupCount() + 1;
             }
 
-            return matchResult.groupCount() + 1;
+            return 0;
         }
     }
 
@@ -69,12 +76,8 @@ public final class RE {
      * @param pattern A regular expression pattern
      * @param input Some character input.
      * @return The match results as a MatchList, empty if no match is made.
-     * @throws AssertionException If the pattern or input is null.
      */
     public static MatchList search(Pattern pattern, CharSequence input) {
-        assert pattern != null : "null pattern given to RE.search!";
-        assert input != null : "null input given to RE.search!";
-
         Matcher matcher = pattern.matcher(input);
 
         if (!matcher.find()) {

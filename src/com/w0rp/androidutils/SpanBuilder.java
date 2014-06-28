@@ -2,7 +2,6 @@ package com.w0rp.androidutils;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.BackgroundColorSpan;
@@ -44,7 +43,7 @@ public class SpanBuilder {
         return new StrikethroughSpan();
     }
 
-    private SpannableStringBuilder sb;
+    private final SpannableStringBuilder sb;
 
     public SpanBuilder() {
         sb = new SpannableStringBuilder();
@@ -61,7 +60,7 @@ public class SpanBuilder {
         sb.append(text);
 
         for (Object span : spanList) {
-            sb.setSpan(span, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            sb.setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
     }
 

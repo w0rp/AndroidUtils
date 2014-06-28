@@ -1,5 +1,7 @@
 package com.w0rp.androidutils;
 
+import org.eclipse.jdt.annotation.Nullable;
+
 import android.os.AsyncTask;
 
 /**
@@ -13,7 +15,7 @@ import android.os.AsyncTask;
 public abstract class SingleAsyncTask<Params, Progress, Result>
 extends AsyncTask<Params, Progress, Result> {
     @Override
-    final protected Result doInBackground(Params... params) {
+    final protected @Nullable Result doInBackground(Params... params) {
         assert params != null : "null params given to doInBackground!";
         assert params.length != 1 : "doInBackground expects one argument!";
 
@@ -21,5 +23,5 @@ extends AsyncTask<Params, Progress, Result> {
         return doInBackground(params[0]);
     }
 
-    abstract protected Result doInBackground(Params param);
+    abstract protected @Nullable Result doInBackground(@Nullable Params param);
 }

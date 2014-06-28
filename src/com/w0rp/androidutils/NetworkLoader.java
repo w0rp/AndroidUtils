@@ -7,6 +7,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
+import org.eclipse.jdt.annotation.Nullable;
 
 import android.os.AsyncTask;
 import android.os.Looper;
@@ -30,7 +31,7 @@ import android.os.Looper;
  */
 public abstract class NetworkLoader<Result> {
     private final class Task extends AsyncTask<Void, Void, Result> {
-        private NetworkFailure failure = null;
+        private @Nullable NetworkFailure failure = null;
         private boolean modified = true;
 
         private HttpUriRequest prepareRequest() {
@@ -45,7 +46,7 @@ public abstract class NetworkLoader<Result> {
         }
 
         @Override
-        protected Result doInBackground(Void... params) {
+        protected @Nullable Result doInBackground(Void... params) {
             Result result = null;
             Header lastModified = null;
             int responseCode = 600;
@@ -82,17 +83,17 @@ public abstract class NetworkLoader<Result> {
         }
 
         @Override
-        protected void onPostExecute(Result result) {
+        protected void onPostExecute(@Nullable Result result) {
             super.onPostExecute(result);
 
-            if (failure == null) {
+            if (failure != null) {
+                onReceiveFailure(failure);
+            } else {
                 if (modified) {
                     onReceiveResult(result);
                 } else {
                     useLastResult();
                 }
-            } else {
-                onReceiveFailure(failure);
             }
 
             // Clear the reference for the task to stop leaks.
@@ -103,8 +104,8 @@ public abstract class NetworkLoader<Result> {
         }
     }
 
-    private Task currentTask = null;
-    private String lastModifiedString;
+    private @Nullable Task currentTask = null;
+    private @Nullable String lastModifiedString;
 
     /**
      * Cancel the current network task. The task is run on another thread,
@@ -113,7 +114,7 @@ public abstract class NetworkLoader<Result> {
      * This method MUST be run from the UI thread.
      */
     public final void cancel() {
-        assert Looper.getMainLooper().equals(Looper.myLooper())
+    	assert Looper.getMainLooper().equals(Looper.myLooper())
             : "NetworkLoader operations must be run on the UI thread!";
 
         if (currentTask != null) {
@@ -167,7 +168,7 @@ public abstract class NetworkLoader<Result> {
      *
      * @param result The parsed result.
      */
-    protected abstract void onReceiveResult(Result result);
+    protected abstract void onReceiveResult(@Nullable Result result);
 
     /**
      * This method will be called on the UI thread when the request fails.
