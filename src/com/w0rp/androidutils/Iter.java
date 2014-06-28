@@ -1,6 +1,7 @@
 package com.w0rp.androidutils;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -14,22 +15,16 @@ public abstract class Iter {
     private static class NullIterable<T> implements Iterable<T> {
         @Override
         public Iterator<T> iterator() {
-            return new NullIterator<T>();
+            return emptyIterator();
         }
     }
 
-    public static final Iterator<?> NULL_ITERATOR =
-        new NullIterator<Object>();
-
-    public static final Iterable<?> NULL_ITERABLE =
-        new NullIterable<Object>();
-
-    private static class CastIterator<T> implements Iterator<T> {
+    public static class CastIterator<T> implements Iterator<T> {
         private final Class<T> cls;
         private final @Nullable Iterator<?> inIterator;
         private @Nullable T current;
 
-        public CastIterator(Class<T> cls, @Nullable Iterator<?> in) {
+        private CastIterator(Class<T> cls, @Nullable Iterator<?> in) {
             assert(cls != null);
 
             this.cls = cls;
@@ -60,7 +55,7 @@ public abstract class Iter {
         }
 
         @Override
-        public @Nullable T next() {
+        public T next() {
             if (hasNext() && current != null) {
                 // First dispose of our reference.
                 T next = current;
@@ -69,7 +64,7 @@ public abstract class Iter {
                 return next;
             }
 
-            return null;
+            throw new NoSuchElementException();
         }
 
         @Override
@@ -81,25 +76,22 @@ public abstract class Iter {
         }
     }
 
-    private static class CastIterable<T> implements Iterable<T> {
+    public static class CastIterable<T> implements Iterable<T> {
         private final Class<T> cls;
         private final @Nullable Iterable<?> inIterable;
 
-        public CastIterable(Class<T> cls, @Nullable Iterable<?> in) {
+        private CastIterable(Class<T> cls, @Nullable Iterable<?> in) {
             this.cls = cls;
             inIterable = in;
         }
 
         @Override
-        public Iterator<T> iterator() {
+        public CastIterator<T> iterator() {
             if (inIterable != null) {
                 return new CastIterator<T>(cls, inIterable.iterator());
             }
 
-            @SuppressWarnings("unchecked")
-            Iterator<T> nullIterator = (Iterator<T>) Iter.NULL_ITERATOR;
-
-            return nullIterator;
+            return emptyCastIterator();
         }
     }
 
@@ -108,19 +100,70 @@ public abstract class Iter {
      * iterable returning an iterator running through only valid instances
      * of type T.
      */
-    private static class IteratorIterable<T> implements Iterable<T> {
-        private final Class<T> cls;
-        private final @Nullable Iterator<?> iterator;
+    public static class IteratorIterable<T> implements Iterable<T> {
+        private final CastIterator<T> castIterator;
 
-        public IteratorIterable(Class<T> cls, @Nullable Iterator<?> iterator) {
-            this.cls = cls;
-            this.iterator = iterator;
+        private IteratorIterable(Class<T> cls, @Nullable Iterator<?> iterator) {
+            // Because we iterate always through the same iterator,
+            // we can create the wrapper iterator in the constructor.
+            if (iterator != null && iterator.hasNext()) {
+                castIterator = new CastIterator<T>(cls, iterator);
+            } else {
+                // If the iterator is null or empty, we just re-use
+                // a single instance to save on allocations.
+                castIterator = emptyCastIterator();
+            }
         }
 
         @Override
-        public Iterator<T> iterator() {
-            return new CastIterator<T>(cls, iterator);
+        public CastIterator<T> iterator() {
+            return castIterator;
         }
+    }
+
+    private static final Iterator<?> NULL_ITERATOR =
+        new NullIterator<Object>();
+
+    private static final Iterable<?> NULL_ITERABLE =
+        new NullIterable<Object>();
+
+    private static final IteratorIterable<?> NULL_ITERATOR_ITERABLE =
+        new IteratorIterable<Object>(Object.class, null);
+
+    private static final CastIterator<?> NULL_CAST_ITERATOR =
+        new CastIterator<Object>(Object.class, null);
+
+    /**
+     * @return A single instance of an empty iterator.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Iterator<T> emptyIterator() {
+        return (Iterator<T>) NULL_ITERATOR;
+    }
+
+    /**
+     * @return A single instance of an empty iterable,
+     *     which yield the single instance of an empty iterator.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Iterable<T> emptyIterable() {
+        return (Iterable<T>) NULL_ITERABLE;
+    }
+
+    /**
+     * @return A single instance of an empty CastIterator.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> CastIterator<T> emptyCastIterator() {
+        return (CastIterator<T>) NULL_CAST_ITERATOR;
+    }
+
+    /**
+     * @return A single instance of an empty IteratorIterable.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> IteratorIterable<T> emptyIteratorIterable() {
+        return (IteratorIterable<T>) NULL_ITERATOR_ITERABLE;
     }
 
     /**
@@ -134,7 +177,8 @@ public abstract class Iter {
      * @param in The original Iterable
      * @return A new Iterable yielding only valid instances of type T.
      */
-    public static <T> Iterable<T> cast(Class<T> cls, @Nullable Iterable<?> in) {
+    public static <T> CastIterable<T> cast(
+    Class<T> cls, @Nullable Iterable<?> in) {
         return new CastIterable<T>(cls, in);
     }
 
@@ -144,7 +188,7 @@ public abstract class Iter {
      *
      * null will be tolerated in all cases.
      */
-    public static <T> Iterable<T> cast(
+    public static <T> IteratorIterable<T> cast(
     Class<T> cls, @Nullable Iterator<?> iterator) {
         return new IteratorIterable<T>(cls, iterator);
     }

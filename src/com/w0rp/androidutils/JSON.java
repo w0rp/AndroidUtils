@@ -1,10 +1,15 @@
 package com.w0rp.androidutils;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.w0rp.androidutils.Iter.CastIterable;
+import com.w0rp.androidutils.Iter.IteratorIterable;
 
 /*
  * This class provides various utility methods for constructing and
@@ -26,7 +31,11 @@ public abstract class JSON {
 
         @Override
         public @Nullable Object next() {
-            return hasNext() ? this.arr.opt(current++) : null;
+            if (hasNext()) {
+                return arr.opt(current++);
+            }
+
+            throw new NoSuchElementException();
         }
 
         @Override
@@ -39,13 +48,9 @@ public abstract class JSON {
      * @param arr A JSONArray. null will be tolerated.
      * @return An Iterator through the values of the JSONArray.
      */
-    public static Iterable<Object> iter(@Nullable JSONArray arr) {
+    public static IteratorIterable<Object> iter(@Nullable JSONArray arr) {
         if (arr == null || arr.length() == 0) {
-            @SuppressWarnings("unchecked")
-            Iterable<Object> nullIterable =
-                (Iterable<Object>) Iter.NULL_ITERABLE;
-
-            return nullIterable;
+            return Iter.emptyIteratorIterable();
         }
 
         return Iter.cast(Object.class, new JSONArrayIterator(arr));
@@ -55,7 +60,7 @@ public abstract class JSON {
      * @param arr A JSONArray. null will be tolerated.
      * @return An Iterator through the JSONObject values of the JSONArray.
      */
-    public static Iterable<JSONObject> objIter(@Nullable JSONArray arr) {
+    public static CastIterable<JSONObject> objIter(@Nullable JSONArray arr) {
         return Iter.cast(JSONObject.class, iter(arr));
     }
 
@@ -65,7 +70,8 @@ public abstract class JSON {
      * @return An Iterator through the values of the JSONArray,
      *     null objects will result in empty Iterables.
      */
-    public static Iterable<Object> iter(@Nullable JSONObject obj, String key) {
+    public static IteratorIterable<Object> iter(
+    @Nullable JSONObject obj, String key) {
         return iter(obj != null ? obj.optJSONArray(key) : null);
     }
 
@@ -74,7 +80,7 @@ public abstract class JSON {
      * @param key The key for the JSONArray.
      * @return An Iterator through the JSONObject values of the JSONArray.
      */
-    public static Iterable<JSONObject> objIter(
+    public static CastIterable<JSONObject> objIter(
     @Nullable JSONObject obj, String key) {
         return Iter.cast(JSONObject.class, iter(obj, key));
     }
@@ -86,15 +92,41 @@ public abstract class JSON {
      *
      * @return An Iterable iterating through an object's keys.
      */
-    public static Iterable<String> keys(@Nullable JSONObject obj) {
+    public static IteratorIterable<String> keys(@Nullable JSONObject obj) {
         if (obj == null) {
-            @SuppressWarnings("unchecked")
-            Iterable<String> nullIterable =
-                (Iterable<String>) Iter.NULL_ITERABLE;
-
-            return nullIterable;
+            // We use the stronger type information here to enhance information
+            // about null analysis in foreach loops.
+            return Iter.emptyIteratorIterable();
         }
 
         return Iter.cast(String.class, obj.keys());
+    }
+
+    /**
+     * Call obj.optString with checked null analysis.
+     *
+     * @param obj The JSON object.
+     * @param key The key in the object.
+     *
+     * @return The string value, or an otherwise an empty string.
+     */
+    @SuppressWarnings("null")
+    public static String optString(JSONObject obj, String key) {
+        return obj.optString(key);
+    }
+
+    /**
+     * Call obj.getString with checked null analysis.
+     *
+     * @param obj The JSON object.
+     * @param key The key in the object.
+     *
+     * @return The string value.
+     * @throw JSONException if the value is missing.
+     */
+    @SuppressWarnings("null")
+    public static String getString(JSONObject obj, String key)
+    throws JSONException {
+        return obj.getString(key);
     }
 }

@@ -16,8 +16,9 @@ public abstract class SingleAsyncTask<Params, Progress, Result>
 extends AsyncTask<Params, Progress, Result> {
     @Override
     final protected @Nullable Result doInBackground(Params... params) {
-        assert params != null : "null params given to doInBackground!";
-        assert params.length != 1 : "doInBackground expects one argument!";
+        if (params == null || params.length != 1) {
+            return null;
+        }
 
         // Delegate to the method with one parameter.
         return doInBackground(params[0]);

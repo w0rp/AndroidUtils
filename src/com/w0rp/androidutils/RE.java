@@ -42,11 +42,10 @@ public final class RE {
          *
          * @return The group at the given location.
          */
-        @SuppressWarnings("null")
         @Override
         public String get(int location) {
             if (matchResult != null) {
-                return matchResult.group(location);
+                return Coerce.notnull(matchResult.group(location));
             }
 
             throw new IllegalStateException("The MatchList was empty!");
@@ -77,7 +76,12 @@ public final class RE {
      * @param input Some character input.
      * @return The match results as a MatchList, empty if no match is made.
      */
-    public static MatchList search(Pattern pattern, CharSequence input) {
+    public static MatchList search(
+    Pattern pattern, @Nullable CharSequence input) {
+        if (input == null) {
+            return emptyMatch;
+        }
+
         Matcher matcher = pattern.matcher(input);
 
         if (!matcher.find()) {
@@ -85,5 +89,16 @@ public final class RE {
         }
 
         return new MatchList(matcher.toMatchResult());
+    }
+
+    /**
+     * Return Pattern.compile with null checking.
+     *
+     * @param pattern The pattern to compile.
+     * @return The pattern, which is not null.
+     */
+    @SuppressWarnings("null")
+    public static Pattern compile(String pattern) {
+        return Pattern.compile(pattern);
     }
 }

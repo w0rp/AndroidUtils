@@ -18,6 +18,38 @@ import org.eclipse.jdt.annotation.Nullable;
  */
 public abstract class Coerce {
     /**
+     * @return Collections.emptyMap with NonNull checking.
+     */
+    @SuppressWarnings("null")
+    public static <K, V> Map<K, V> emptyMap() {
+        return Collections.emptyMap();
+    }
+
+    /**
+     * @return Collections.unmodifiableMap with NonNull checking.
+     */
+    @SuppressWarnings("null")
+    public static <K, V> Map<K, V> unmodifiableMap(Map<K, V> map) {
+        return Collections.unmodifiableMap(map);
+    }
+
+    /**
+     * @return Collections.emptyList with NonNull checking.
+     */
+    @SuppressWarnings("null")
+    public static <V> List<V> emptyList() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * @return Collections.emptySet with NonNull checking.
+     */
+    @SuppressWarnings("null")
+    public static <V> Set<V> emptySet() {
+        return Collections.emptySet();
+    }
+
+    /**
      * Attempt to cast a reference to an given class.
      *
      * @param cls A class to cast the reference to.
@@ -33,15 +65,30 @@ public abstract class Coerce {
     }
 
     /**
+     * Given any reference, assert that the reference is not null and return
+     * it as a @NonNull type.
+     *
+     * @param ref A possibly null type.
+     * @return The reference, which is definitely not null.
+     * @throws NullPointerException if the reference is null.
+     */
+    public static <T> T notnull(@Nullable T ref) {
+        if (ref == null) {
+            throw new NullPointerException();
+        }
+
+        return ref;
+    }
+
+    /**
      * Coerce null collections to empty collections.
      *
      * @param in A collection which may be null.
      * @return The collection, or an empty collection if it was null.
      */
-    @SuppressWarnings("null")
     public static <T> Collection<T> def(@Nullable Collection<T> in) {
         if (in == null) {
-            return Collections.emptyList();
+            return Coerce.emptyList();
         }
 
         return in;
